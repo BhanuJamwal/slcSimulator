@@ -116,6 +116,7 @@ const server = http.createServer((req, res) => {
 
   // Respond with a message based on the request method and URL
   if (req.method === 'GET' && req.url === '/') {
+    console.log("someone hit the server!")
     res.end('Welcome to the Home Page!');
   } else if (req.method === 'GET' && req.url === '/about') {
     res.end('This is the About Page!');
