@@ -103,6 +103,31 @@ for (let i = 0; i < Devices.length; i++) {
   initializeDevice(Devices[i]);
 }
 
+// Import the http module
+const http = require('http');
+
+// Define the port to listen on
+const PORT = 3000;
+
+// Create a server that listens to incoming requests
+const server = http.createServer((req, res) => {
+  // Set the response header
+  res.writeHead(200, { 'Content-Type': 'text/plain' });
+
+  // Respond with a message based on the request method and URL
+  if (req.method === 'GET' && req.url === '/') {
+    res.end('Welcome to the Home Page!');
+  } else if (req.method === 'GET' && req.url === '/about') {
+    res.end('This is the About Page!');
+  } else {
+    res.end('Page Not Found');
+  }
+});
+
+// Open the server on the defined port
+server.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
 
 // Port = 10
 // Packet = Device Status Change Message
