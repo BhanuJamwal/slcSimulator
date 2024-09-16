@@ -1,0 +1,16 @@
+{
+  "dependencies": {
+    "mqtt": "^5.10.1"
+  },
+  "name": "slcsimulator",
+  "version": "1.0.0",
+  "main": "streetLightController.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}
