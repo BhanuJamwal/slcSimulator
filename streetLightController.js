@@ -42,7 +42,7 @@ function initializeDevice(device) {
     // Periodically send status updates every 15 minutes
     setInterval(() => {
       sendStatusUpdate(slcDevice, statusTopic);
-    }, 1 * 60 * 1000); // 15 minutes interval
+    }, 15 * 60 * 1000); // 15 minutes interval
   });
 
   // Handle incoming commands
