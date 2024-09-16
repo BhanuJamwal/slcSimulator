@@ -7,7 +7,7 @@ const brokerUrl = 'mqtts://dmp-tata.orbiwise.com:8883';
 const topicBase = 'streetlight/controller';
 
 // Define the number of street light controllers (SLC devices)
-const Devices = [{"deviceId":"SLCILM0001","username":"3UUBsUUZa7DgVbheMX8jrDAB0","password":"Dyfs5rI3gMYWyDt76SKKmqOqLqOD","number":1},{"deviceId":"SLCILM0002","username":"3UUBsUUZa7DgVbheMX8jrDAB0","password":"Dyfs5rI3gMYWyDt76SKKmqOqLqOD","number":2},{"deviceId":"SLCILM0003","username":"3UUBsUUZa7DgVbheMX8jrDAB0","password":"Dyfs5rI3gMYWyDt76SKKmqOqLqOD","number":3},{"deviceId":"SLCILM0004","username":"3UUBsUUZa7DgVbheMX8jrDAB0","password":"Dyfs5rI3gMYWyDt76SKKmqOqLqOD","number":4},{"deviceId":"SLCILM0005","username":"3UUBsUUZa7DgVbheMX8jrDAB0","password":"Dyfs5rI3gMYWyDt76SKKmqOqLqOD","number":5}];
+const Devices = [{"deviceId":"SLCILM0001","username":"3UUBsUUZa7DgVbheMX8jrDAB0","password":"Dyfs5rI3gMYWyDt76SKKmqOqLqOD","number":"1"},{"deviceId":"SLCILM0002","username":"3UUBsUUZa7DgVbheMX8jrDAB0","password":"Dyfs5rI3gMYWyDt76SKKmqOqLqOD","number":"2"},{"deviceId":"SLCILM0003","username":"3UUBsUUZa7DgVbheMX8jrDAB0","password":"Dyfs5rI3gMYWyDt76SKKmqOqLqOD","number":"3"},{"deviceId":"SLCILM0004","username":"3UUBsUUZa7DgVbheMX8jrDAB0","password":"Dyfs5rI3gMYWyDt76SKKmqOqLqOD","number":"4"},{"deviceId":"SLCILM0005","username":"3UUBsUUZa7DgVbheMX8jrDAB0","password":"Dyfs5rI3gMYWyDt76SKKmqOqLqOD","number":"5"}];
 //const Devices = [{"deviceId":"SLCILM0001","username":"3UUBsUUZa7DgVbheMX8jrDAB0","password":"Dyfs5rI3gMYWyDt76SKKmqOqLqOD"}];
 
 // Array to store each SLC device
@@ -18,11 +18,10 @@ function initializeDevice(device) {
   const client = mqtt.connect(brokerUrl,{username:device.username,password:device.password});
   const controlTopic = `${topicBase}/device${device.deviceId}/control`;  // Topic for receiving commands
   const statusTopic = `${topicBase}/device${device.deviceId}/status`;   // Topic for sending status updates
-
   // Each SLC device has its own status and brightness
   const slcDevice = {
     id: device.deviceId,
-    // status: 'OFF',
+    //num: device.number,
     // brightness: 0,
     client
   };
@@ -47,6 +46,7 @@ function initializeDevice(device) {
 
   // Handle incoming commands
   client.on('message', (topic, message) => {
+    console.log("got message")
     if (topic === controlTopic) {
       const payload = JSON.parse(message.toString());
       if(payload.command == "tick"){
@@ -67,7 +67,7 @@ function sendStatusUpdate(device, topic) {
     deveui: device.id, 
     //status: device.status, 
     //brightness: device.brightness,
-    ...data
+    ...data[device.id]
   });
 
   // Publish status update to the broker
@@ -77,26 +77,28 @@ function sendStatusUpdate(device, topic) {
 
 // Function to handle incoming control commands
 function handleCommand(device, payload) {
+  console.log(payload,"here is the pay.oad")
   const { command, value } = payload;
 
   switch (command) {
     case 'ON':
-      device.status = 'ON';
-      device.brightness = value || 100;
+      data[device.id]["Load On Off Status"] = true
+      //device.status = 'ON';
+      data[device.id]["Dimming Value"] = value || 100;
       break;
     case 'OFF':
-      device.status = 'OFF';
-      device.brightness = 0;
+      data[device.id]["Load On Off Status"] = false;
+      data[device.id]["Dimming Value"] = 0;
       break;
     case 'DIM':
-      device.status = 'ON';
-      device.brightness = value;
+      data[device.id]["Load On Off Status"] = 'ON';
+      data[device.id]["Dimming Value"] = value;
       break;
     default:
       console.log(`Unknown command received for Device ${device.id}`);
   }
 
-  console.log(`Device ${device.id} updated: ${JSON.stringify(device)}`);
+  console.log(`Device ${device.id} updated`);
 }
 
 // Initialize the 5 SLC devices
@@ -131,44 +133,258 @@ server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
 
-const data ={"Port":10,
-"Packet":"Device Status Change Message",
-"AC Mains Status":true,
-"Load On Off Status" : false,
-"Dimming Value": 0,
-"Lux Sensor Value" : 0,
-"CT Current Value" : 255,
-//"Device Mode" : 2,
-//"Device Dimming Profile" : 0,
-//"Device Calendar Profile" : 1,
-//"Device Mode Description" : "Schedule Mode",
-//"Device Dimming Profile Description" : "No Dimming Applied",
-//"Device Calendar Profile Description" : "User Calendar 1",
-// Controller Running Hour Counter : 4913
-// Controller Running Hour Minutes = 12
-// Load Burn Hour Counter = 1705
-// Load Burn Hour Minutes = 39
-// Load ON Event Counter = 257
-// Load OFF Event Counter = 299
-// Alarm Message Counter = 1178
-// Device SW Reset Counter = 516
-"Metering Energy kWH Counter" : 25.25,
-"Burning Hours" : 1705.65,
-"Voltage Value" : 229.33,
-"Current Value" : 0,
-"Active Power Value" : 0.00,
-"Reactive Power Value" : 0,
-"Frequency" : 50,
-"Power Factor Value": 0,
-"Active Energy Value" : 25.25,
-"Apparent Power Value" : 0,
-"Apparent Energy Value" : 0.00,
-"Reactive Energy Value" : 0.00,
-// RSSI = 0
-// SNR = 0
-"Time Date" : "17:42:49 13-09-2024",
-"Battery Percentage" : 2,
-"Battery Value" : 2,
-"timestamp" : "2024-09-13T12:17:47.735Z",
-//"deveui" : "3cc1f605000601c1"
+
+const data = {
+  "SLCILM0001": {
+    "Port":10,
+    "Packet":"Device Status Change Message",
+    "AC Mains Status":true,
+    "Load On Off Status" : false,
+    "Dimming Value": 0,
+    "Lux Sensor Value" : 0,
+    "CT Current Value" : 255,
+    //"Device Mode" : 2,
+    //"Device Dimming Profile" : 0,
+    //"Device Calendar Profile" : 1,
+    //"Device Mode Description" : "Schedule Mode",
+    //"Device Dimming Profile Description" : "No Dimming Applied",
+    //"Device Calendar Profile Description" : "User Calendar 1",
+    // Controller Running Hour Counter : 4913
+    // Controller Running Hour Minutes = 12
+    // Load Burn Hour Counter = 1705
+    // Load Burn Hour Minutes = 39
+    // Load ON Event Counter = 257
+    // Load OFF Event Counter = 299
+    // Alarm Message Counter = 1178
+    // Device SW Reset Counter = 516
+    "Metering Energy kWH Counter" : 25.25,
+    "Burning Hours" : 1705.65,
+    "Voltage Value" : 229.33,
+    "Current Value" : 0,
+    "Active Power Value" : 0.00,
+    "Reactive Power Value" : 0,
+    "Frequency" : 50,
+    "Power Factor Value": 0,
+    "Active Energy Value" : 25.25,
+    "Apparent Power Value" : 0,
+    "Apparent Energy Value" : 0.00,
+    "Reactive Energy Value" : 0.00,
+    // RSSI = 0
+    // SNR = 0
+    "Time Date" : "17:42:49 13-09-2024",
+    "Battery Percentage" : 2,
+    "Battery Value" : 2,
+    "timestamp" : "2024-09-13T12:17:47.735Z",
+    //"deveui" : "3cc1f605000601c1"
+    },
+  "SLCILM0002":{
+    "Port":10,
+    "Packet":"Device Status Change Message",
+    "AC Mains Status":true,
+    "Load On Off Status" : false,
+    "Dimming Value": 0,
+    "Lux Sensor Value" : 0,
+    "CT Current Value" : 255,
+    //"Device Mode" : 2,
+    //"Device Dimming Profile" : 0,
+    //"Device Calendar Profile" : 1,
+    //"Device Mode Description" : "Schedule Mode",
+    //"Device Dimming Profile Description" : "No Dimming Applied",
+    //"Device Calendar Profile Description" : "User Calendar 1",
+    // Controller Running Hour Counter : 4913
+    // Controller Running Hour Minutes = 12
+    // Load Burn Hour Counter = 1705
+    // Load Burn Hour Minutes = 39
+    // Load ON Event Counter = 257
+    // Load OFF Event Counter = 299
+    // Alarm Message Counter = 1178
+    // Device SW Reset Counter = 516
+    "Metering Energy kWH Counter" : 25.25,
+    "Burning Hours" : 1705.65,
+    "Voltage Value" : 229.33,
+    "Current Value" : 0,
+    "Active Power Value" : 0.00,
+    "Reactive Power Value" : 0,
+    "Frequency" : 50,
+    "Power Factor Value": 0,
+    "Active Energy Value" : 25.25,
+    "Apparent Power Value" : 0,
+    "Apparent Energy Value" : 0.00,
+    "Reactive Energy Value" : 0.00,
+    // RSSI = 0
+    // SNR = 0
+    "Time Date" : "17:42:49 13-09-2024",
+    "Battery Percentage" : 2,
+    "Battery Value" : 2,
+    "timestamp" : "2024-09-13T12:17:47.735Z",
+    //"deveui" : "3cc1f605000601c1"
+    },
+  "SLCILM0003": {
+    "Port":10,
+    "Packet":"Device Status Change Message",
+    "AC Mains Status":true,
+    "Load On Off Status" : false,
+    "Dimming Value": 0,
+    "Lux Sensor Value" : 0,
+    "CT Current Value" : 255,
+    //"Device Mode" : 2,
+    //"Device Dimming Profile" : 0,
+    //"Device Calendar Profile" : 1,
+    //"Device Mode Description" : "Schedule Mode",
+    //"Device Dimming Profile Description" : "No Dimming Applied",
+    //"Device Calendar Profile Description" : "User Calendar 1",
+    // Controller Running Hour Counter : 4913
+    // Controller Running Hour Minutes = 12
+    // Load Burn Hour Counter = 1705
+    // Load Burn Hour Minutes = 39
+    // Load ON Event Counter = 257
+    // Load OFF Event Counter = 299
+    // Alarm Message Counter = 1178
+    // Device SW Reset Counter = 516
+    "Metering Energy kWH Counter" : 25.25,
+    "Burning Hours" : 1705.65,
+    "Voltage Value" : 229.33,
+    "Current Value" : 0,
+    "Active Power Value" : 0.00,
+    "Reactive Power Value" : 0,
+    "Frequency" : 50,
+    "Power Factor Value": 0,
+    "Active Energy Value" : 25.25,
+    "Apparent Power Value" : 0,
+    "Apparent Energy Value" : 0.00,
+    "Reactive Energy Value" : 0.00,
+    // RSSI = 0
+    // SNR = 0
+    "Time Date" : "17:42:49 13-09-2024",
+    "Battery Percentage" : 2,
+    "Battery Value" : 2,
+    "timestamp" : "2024-09-13T12:17:47.735Z",
+    //"deveui" : "3cc1f605000601c1"
+    },
+  "SLCILM0004" : {
+    "Port":10,
+    "Packet":"Device Status Change Message",
+    "AC Mains Status":true,
+    "Load On Off Status" : false,
+    "Dimming Value": 0,
+    "Lux Sensor Value" : 0,
+    "CT Current Value" : 255,
+    //"Device Mode" : 2,
+    //"Device Dimming Profile" : 0,
+    //"Device Calendar Profile" : 1,
+    //"Device Mode Description" : "Schedule Mode",
+    //"Device Dimming Profile Description" : "No Dimming Applied",
+    //"Device Calendar Profile Description" : "User Calendar 1",
+    // Controller Running Hour Counter : 4913
+    // Controller Running Hour Minutes = 12
+    // Load Burn Hour Counter = 1705
+    // Load Burn Hour Minutes = 39
+    // Load ON Event Counter = 257
+    // Load OFF Event Counter = 299
+    // Alarm Message Counter = 1178
+    // Device SW Reset Counter = 516
+    "Metering Energy kWH Counter" : 25.25,
+    "Burning Hours" : 1705.65,
+    "Voltage Value" : 229.33,
+    "Current Value" : 0,
+    "Active Power Value" : 0.00,
+    "Reactive Power Value" : 0,
+    "Frequency" : 50,
+    "Power Factor Value": 0,
+    "Active Energy Value" : 25.25,
+    "Apparent Power Value" : 0,
+    "Apparent Energy Value" : 0.00,
+    "Reactive Energy Value" : 0.00,
+    // RSSI = 0
+    // SNR = 0
+    "Time Date" : "17:42:49 13-09-2024",
+    "Battery Percentage" : 2,
+    "Battery Value" : 2,
+    "timestamp" : "2024-09-13T12:17:47.735Z",
+    //"deveui" : "3cc1f605000601c1"
+    },
+  "SLCILM0005" :{
+    "Port":10,
+    "Packet":"Device Status Change Message",
+    "AC Mains Status":true,
+    "Load On Off Status" : false,
+    "Dimming Value": 0,
+    "Lux Sensor Value" : 0,
+    "CT Current Value" : 255,
+    //"Device Mode" : 2,
+    //"Device Dimming Profile" : 0,
+    //"Device Calendar Profile" : 1,
+    //"Device Mode Description" : "Schedule Mode",
+    //"Device Dimming Profile Description" : "No Dimming Applied",
+    //"Device Calendar Profile Description" : "User Calendar 1",
+    // Controller Running Hour Counter : 4913
+    // Controller Running Hour Minutes = 12
+    // Load Burn Hour Counter = 1705
+    // Load Burn Hour Minutes = 39
+    // Load ON Event Counter = 257
+    // Load OFF Event Counter = 299
+    // Alarm Message Counter = 1178
+    // Device SW Reset Counter = 516
+    "Metering Energy kWH Counter" : 25.25,
+    "Burning Hours" : 1705.65,
+    "Voltage Value" : 229.33,
+    "Current Value" : 0,
+    "Active Power Value" : 0.00,
+    "Reactive Power Value" : 0,
+    "Frequency" : 50,
+    "Power Factor Value": 0,
+    "Active Energy Value" : 25.25,
+    "Apparent Power Value" : 0,
+    "Apparent Energy Value" : 0.00,
+    "Reactive Energy Value" : 0.00,
+    // RSSI = 0
+    // SNR = 0
+    "Time Date" : "17:42:49 13-09-2024",
+    "Battery Percentage" : 2,
+    "Battery Value" : 2,
+    "timestamp" : "2024-09-13T12:17:47.735Z",
+    //"deveui" : "3cc1f605000601c1"
+    }
 }
+
+// const data ={"Port":10,
+// "Packet":"Device Status Change Message",
+// "AC Mains Status":true,
+// "Load On Off Status" : false,
+// "Dimming Value": 0,
+// "Lux Sensor Value" : 0,
+// "CT Current Value" : 255,
+// //"Device Mode" : 2,
+// //"Device Dimming Profile" : 0,
+// //"Device Calendar Profile" : 1,
+// //"Device Mode Description" : "Schedule Mode",
+// //"Device Dimming Profile Description" : "No Dimming Applied",
+// //"Device Calendar Profile Description" : "User Calendar 1",
+// // Controller Running Hour Counter : 4913
+// // Controller Running Hour Minutes = 12
+// // Load Burn Hour Counter = 1705
+// // Load Burn Hour Minutes = 39
+// // Load ON Event Counter = 257
+// // Load OFF Event Counter = 299
+// // Alarm Message Counter = 1178
+// // Device SW Reset Counter = 516
+// "Metering Energy kWH Counter" : 25.25,
+// "Burning Hours" : 1705.65,
+// "Voltage Value" : 229.33,
+// "Current Value" : 0,
+// "Active Power Value" : 0.00,
+// "Reactive Power Value" : 0,
+// "Frequency" : 50,
+// "Power Factor Value": 0,
+// "Active Energy Value" : 25.25,
+// "Apparent Power Value" : 0,
+// "Apparent Energy Value" : 0.00,
+// "Reactive Energy Value" : 0.00,
+// // RSSI = 0
+// // SNR = 0
+// "Time Date" : "17:42:49 13-09-2024",
+// "Battery Percentage" : 2,
+// "Battery Value" : 2,
+// "timestamp" : "2024-09-13T12:17:47.735Z",
+// //"deveui" : "3cc1f605000601c1"
+// }
