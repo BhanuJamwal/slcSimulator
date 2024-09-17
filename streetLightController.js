@@ -52,7 +52,7 @@ function initializeDevice(device) {
       if(payload.command == "tick"){
         console.log("tick event!")
       }else{
-        handleCommand(slcDevice, payload);
+        handleCommand(slcDevice, payload,topic);
 
       }
     }
@@ -80,7 +80,7 @@ function sendStatusUpdate(device, topic) {
 }
 
 // Function to handle incoming control commands
-function handleCommand(device, payload) {
+function handleCommand(device, payload, topic) {
   console.log(payload,"here is the pay.oad")
   const { command, value } = payload;
 
