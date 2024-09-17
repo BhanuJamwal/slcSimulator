@@ -63,6 +63,10 @@ function initializeDevice(device) {
 
 // Function to send a status update for each device
 function sendStatusUpdate(device, topic) {
+  if(data[device.id]["Load On Off Status"]){
+    data[device.id]["Current Value"] = getRandomFloat(currentData[device.id]["min"],currentData[device.id]["max"])
+    data[device.id]["Active Power Value"] = 229.33 * data[device.id]["Current Value"];
+  }
   const statusMessage = JSON.stringify({ 
     deveui: device.id, 
     //status: device.status, 
@@ -388,3 +392,7 @@ const data = {
 // "timestamp" : "2024-09-13T12:17:47.735Z",
 // //"deveui" : "3cc1f605000601c1"
 // }
+const currentData = {"SLCILM0001":{"min":0.5,"max":2},"SLCILM0002":{"min":0.5,"max":2},"SLCILM0003":{"min":2,"max":10},"SLCILM0004":{"min":2,"max":10},"SLCILM0005":{"min":5,"max":20}}
+function getRandomFloat(min, max) {
+  return Math.random() * (max - min) + min;
+}
