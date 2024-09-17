@@ -46,15 +46,11 @@ function initializeDevice(device) {
 
   // Handle incoming commands
   client.on('message', (topic, message) => {
-    console.log("got message")
+    console.log("got message",topic, message, message.toString(),"----->")
     if (topic === controlTopic) {
       const payload = JSON.parse(message.toString());
-      if(payload.command == "tick"){
-        console.log("tick event!")
-      }else{
-        handleCommand(slcDevice, payload,topic);
-
-      }
+      console.log(payload,"payload")
+      handleCommand(slcDevice, payload,statusTopic);
     }
   });
 
@@ -101,13 +97,18 @@ function handleCommand(device, payload, topic) {
     default:
       console.log(`Unknown command received for Device ${device.id}`);
   }
-  const statusMessage = JSON.stringify({ 
+  let status = { 
     deveui: device.id,
-    packetType : "service", 
+    //packetType : "service", 
     //status: device.status, 
     //brightness: device.brightness,
     ...data[device.id]
-  });
+  }
+  status['packetType'] = "service"
+  console.log(status,"status")
+  let statusMessage = JSON.stringify(status);
+  //statusMessage['packetType'] = "service" 
+  console.log(topic,statusMessage,"pppppp")
   device.client.publish(topic,statusMessage)
   console.log(`Device ${device.id} updated`);
 }
