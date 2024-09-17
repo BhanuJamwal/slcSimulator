@@ -101,7 +101,14 @@ function handleCommand(device, payload) {
     default:
       console.log(`Unknown command received for Device ${device.id}`);
   }
-
+  const statusMessage = JSON.stringify({ 
+    deveui: device.id,
+    packetType : "service", 
+    //status: device.status, 
+    //brightness: device.brightness,
+    ...data[device.id]
+  });
+  device.client.publish(topic,statusMessage)
   console.log(`Device ${device.id} updated`);
 }
 
@@ -141,6 +148,7 @@ server.listen(PORT, () => {
 const data = {
   "SLCILM0001": {
     "Port":10,
+    "packetType": "normal",
     "Packet":"Device Status Change Message",
     "AC Mains Status":true,
     "Load On Off Status" : false,
@@ -183,6 +191,7 @@ const data = {
     },
   "SLCILM0002":{
     "Port":10,
+    "packetType": "normal",
     "Packet":"Device Status Change Message",
     "AC Mains Status":true,
     "Load On Off Status" : false,
@@ -225,6 +234,7 @@ const data = {
     },
   "SLCILM0003": {
     "Port":10,
+    "packetType": "normal",
     "Packet":"Device Status Change Message",
     "AC Mains Status":true,
     "Load On Off Status" : false,
@@ -267,6 +277,7 @@ const data = {
     },
   "SLCILM0004" : {
     "Port":10,
+    "packetType": "normal",
     "Packet":"Device Status Change Message",
     "AC Mains Status":true,
     "Load On Off Status" : false,
@@ -309,6 +320,7 @@ const data = {
     },
   "SLCILM0005" :{
     "Port":10,
+    "packetType": "normal",
     "Packet":"Device Status Change Message",
     "AC Mains Status":true,
     "Load On Off Status" : false,
