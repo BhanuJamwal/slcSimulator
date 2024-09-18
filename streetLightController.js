@@ -58,7 +58,7 @@ function initializeDevice(device) {
 
 // Function to send a status update for each device
 function sendStatusUpdate(device, topic) {
-  data[device.id]["Voltage Value"] = getRandomVoltage()
+  data[device.id]["Voltage Value"] = parseFloat(getRandomVoltage())
   if(data[device.id]["Load On Off Status"]){
     data[device.id]["Current Value"] = getRandomFloat(currentData[device.id]["min"],currentData[device.id]["max"])
     data[device.id]["Active Power Value"] = data[device.id]["Voltage Value"] * data[device.id]["Current Value"];
