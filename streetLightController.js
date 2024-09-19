@@ -60,8 +60,15 @@ function initializeDevice(device) {
 function sendStatusUpdate(device, topic) {
   data[device.id]["Voltage Value"] = parseFloat(getRandomVoltage())
   if(data[device.id]["Load On Off Status"]){
-    data[device.id]["Current Value"] = getRandomFloat(currentData[device.id]["min"],currentData[device.id]["max"])
-    data[device.id]["Active Power Value"] = data[device.id]["Voltage Value"] * data[device.id]["Current Value"];
+    data[device.id]["Current Value"] = parseFloat(getRandomFloat(currentData[device.id]["min"],currentData[device.id]["max"]))
+    data[device.id]["Power Factor Value"] = parseFloat(getRandomPowerFactor())
+    data[device.id]["Active Power Value"] = parseFloat(calculateRealPower(data[device.id]["Voltage Value"],data[device.id]["Current Value"],data[device.id]["Power Factor Value"]))
+    data[device.id]["Apparent Power Value"] = parseFloat(calculateApparentPower(data[device.id]["Voltage Value"], data[device.id]["Current Value"]))
+  }else{
+    data[device.id]["Current Value"] = 0
+    data[device.id]["Power Factor Value"] = 0
+    data[device.id]["Active Power Value"] = 0
+    data[device.id]["Apparent Power Value"] = 0
   }
   const statusMessage = JSON.stringify({ 
     deveui: device.id, 
@@ -79,16 +86,24 @@ function sendStatusUpdate(device, topic) {
 function handleCommand(device, payload, topic) {
   console.log(payload,"here is the pay.oad")
   const { command, value } = payload;
-
+  data[device.id]["Voltage Value"] = parseFloat(getRandomVoltage())
   switch (command) {
     case 'ON':
       data[device.id]["Load On Off Status"] = true
       //device.status = 'ON';
       data[device.id]["Dimming Value"] = value || 100;
+      data[device.id]["Current Value"] = parseFloat(getRandomFloat(currentData[device.id]["min"],currentData[device.id]["max"]))
+      data[device.id]["Power Factor Value"] = parseFloat(getRandomPowerFactor())
+      data[device.id]["Active Power Value"] = parseFloat(calculateRealPower(data[device.id]["Voltage Value"],data[device.id]["Current Value"],data[device.id]["Power Factor Value"]))
+      data[device.id]["Apparent Power Value"] = parseFloat(calculateApparentPower(data[device.id]["Voltage Value"], data[device.id]["Current Value"]))
       break;
     case 'OFF':
       data[device.id]["Load On Off Status"] = false;
       data[device.id]["Dimming Value"] = 0;
+      data[device.id]["Current Value"] = 0
+      data[device.id]["Power Factor Value"] = 0
+      data[device.id]["Active Power Value"] = 0
+      data[device.id]["Apparent Power Value"] = 0
       break;
     case 'DIM':
       data[device.id]["Load On Off Status"] = 'ON';
@@ -97,6 +112,7 @@ function handleCommand(device, payload, topic) {
     default:
       console.log(`Unknown command received for Device ${device.id}`);
   }
+  
   let status = { 
     deveui: device.id,
     //packetType : "service", 
@@ -366,11 +382,13 @@ const data = {
 }
 
 
-const currentData = {"SLCILM0001":{"min":0.5,"max":2},"SLCILM0002":{"min":0.5,"max":2},"SLCILM0003":{"min":2,"max":10},"SLCILM0004":{"min":2,"max":10},"SLCILM0005":{"min":5,"max":20}}
+//const currentData = {"SLCILM0001":{"min":0.5,"max":2},"SLCILM0002":{"min":0.5,"max":2},"SLCILM0003":{"min":2,"max":10},"SLCILM0004":{"min":2,"max":10},"SLCILM0005":{"min":5,"max":20}}
+
+const currentData = {"SLCILM0001":{"min":0.5,"max":2},"SLCILM0002":{"min":0.5,"max":2},"SLCILM0003":{"min":0.5,"max":2},"SLCILM0004":{"min":0.5,"max":2},"SLCILM0005":{"min":0.5,"max":2}}
 
 
 function getRandomFloat(min, max) {
-  return Math.random() * (max - min) + min;
+  return (Math.random() * (max - min) + min).toFixed(2);
 }
 
 // Voltage threshold limits
@@ -392,6 +410,22 @@ function getRandomVoltage() {
     }
 
     return voltage.toFixed(2); // Return a float with 2 decimal places
+}
+
+function getRandomPowerFactor() {
+  const MIN_POWER_FACTOR = 0.7; // Minimum power factor
+  const MAX_POWER_FACTOR = 1.0; // Maximum power factor (pure resistive load)
+  return (Math.random() * (MAX_POWER_FACTOR - MIN_POWER_FACTOR) + MIN_POWER_FACTOR).toFixed(2);
+}
+
+// Function to calculate apparent power (S = V * I)
+function calculateApparentPower(voltage, current) {
+  return (voltage * current).toFixed(2);
+}
+
+// Function to calculate real power (P = V * I * cos(phi))
+function calculateRealPower(voltage, current, powerFactor) {
+  return (voltage * current * powerFactor).toFixed(2);
 }
 
 
