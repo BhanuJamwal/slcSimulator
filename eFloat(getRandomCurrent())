@@ -1,0 +1,91 @@
+[1mdiff --git a/streetLightController.js b/streetLightController.js[m
+[1mindex 2cad5bf..c90732b 100644[m
+[1m--- a/streetLightController.js[m
+[1m+++ b/streetLightController.js[m
+[36m@@ -8,7 +8,7 @@[m [mconst topicBase = 'streetlight/controller';[m
+ [m
+ // Define the number of street light controllers (SLC devices)[m
+ const Devices = [{"deviceId":"SLCILM0001","username":"3UUBsUUZa7DgVbheMX8jrDAB0","password":"Dyfs5rI3gMYWyDt76SKKmqOqLqOD","number":"1"},{"deviceId":"SLCILM0002","username":"3UUBsUUZa7DgVbheMX8jrDAB0","password":"Dyfs5rI3gMYWyDt76SKKmqOqLqOD","number":"2"},{"deviceId":"SLCILM0003","username":"3UUBsUUZa7DgVbheMX8jrDAB0","password":"Dyfs5rI3gMYWyDt76SKKmqOqLqOD","number":"3"},{"deviceId":"SLCILM0004","username":"3UUBsUUZa7DgVbheMX8jrDAB0","password":"Dyfs5rI3gMYWyDt76SKKmqOqLqOD","number":"4"},{"deviceId":"SLCILM0005","username":"3UUBsUUZa7DgVbheMX8jrDAB0","password":"Dyfs5rI3gMYWyDt76SKKmqOqLqOD","number":"5"}];[m
+[31m-//const Devices = [{"deviceId":"SLCILM0001","username":"3UUBsUUZa7DgVbheMX8jrDAB0","password":"Dyfs5rI3gMYWyDt76SKKmqOqLqOD"}];[m
+[32m+[m[32m//const Devices = [{"deviceId":"SLCILM0003","username":"3UUBsUUZa7DgVbheMX8jrDAB0","password":"Dyfs5rI3gMYWyDt76SKKmqOqLqOD"}];[m
+ [m
+ // Array to store each SLC device[m
+ const slcDevices = [];[m
+[36m@@ -41,7 +41,7 @@[m [mfunction initializeDevice(device) {[m
+     // Periodically send status updates every 15 minutes[m
+     setInterval(() => {[m
+       sendStatusUpdate(slcDevice, statusTopic);[m
+[31m-    }, 15 * 60 * 1000); // 15 minutes interval[m
+[32m+[m[32m    }, 1 * 60 * 1000); // 15 minutes interval[m
+   });[m
+ [m
+   // Handle incoming commands[m
+[36m@@ -58,9 +58,10 @@[m [mfunction initializeDevice(device) {[m
+ [m
+ // Function to send a status update for each device[m
+ function sendStatusUpdate(device, topic) {[m
+[31m-  data[device.id]["Voltage Value"] = parseFloat(getRandomVoltage())[m
+[32m+[m[32m  //data[device.id]["Voltage Value"] = parseFloat(getRandomVoltage())[m
+   if(data[device.id]["Load On Off Status"]){[m
+[31m-    data[device.id]["Current Value"] = parseFloat(getRandomFloat(currentData[device.id]["min"],currentData[device.id]["max"]))[m
+[32m+[m[32m    //data[device.id]["Current Value"] = parseFloat(getRandomFloat(currentData[device.id]["min"],currentData[device.id]["max"]))[m
+[32m+[m[32m    data[device.id]["Current Value"] = parseFloat(getRandomCurrent())[m
+     data[device.id]["Power Factor Value"] = parseFloat(getRandomPowerFactor())[m
+     data[device.id]["Active Power Value"] = parseFloat(calculateRealPower(data[device.id]["Voltage Value"],data[device.id]["Current Value"],data[device.id]["Power Factor Value"]))[m
+     data[device.id]["Apparent Power Value"] = parseFloat(calculateApparentPower(data[device.id]["Voltage Value"], data[device.id]["Current Value"]))[m
+[36m@@ -92,7 +93,8 @@[m [mfunction handleCommand(device, payload, topic) {[m
+       data[device.id]["Load On Off Status"] = true[m
+       //device.status = 'ON';[m
+       data[device.id]["Dimming Value"] = value || 100;[m
+[31m-      data[device.id]["Current Value"] = parseFloat(getRandomFloat(currentData[device.id]["min"],currentData[device.id]["max"]))[m
+[32m+[m[32m      //data[device.id]["Current Value"] = parseFloat(getRandomFloat(currentData[device.id]["min"],currentData[device.id]["max"]))[m
+[32m+[m[32m      data[device.id]["Current Value"] = parseFloat(getRandomCurrent())[m
+       data[device.id]["Power Factor Value"] = parseFloat(getRandomPowerFactor())[m
+       data[device.id]["Active Power Value"] = parseFloat(calculateRealPower(data[device.id]["Voltage Value"],data[device.id]["Current Value"],data[device.id]["Power Factor Value"]))[m
+       data[device.id]["Apparent Power Value"] = parseFloat(calculateApparentPower(data[device.id]["Voltage Value"], data[device.id]["Current Value"]))[m
+[36m@@ -255,8 +257,8 @@[m [mconst data = {[m
+     "packetType": "normal",[m
+     "Packet":"Device Status Change Message",[m
+     "AC Mains Status":true,[m
+[31m-    "Load On Off Status" : false,[m
+[31m-    "Dimming Value": 0,[m
+[32m+[m[32m    "Load On Off Status" : true,[m
+[32m+[m[32m    "Dimming Value": 100,[m
+     "Lux Sensor Value" : 0,[m
+     "CT Current Value" : 255,[m
+     //"Device Mode" : 2,[m
+[36m@@ -275,7 +277,7 @@[m [mconst data = {[m
+     // Device SW Reset Counter = 516[m
+     "Metering Energy kWH Counter" : 25.25,[m
+     "Burning Hours" : 1705.65,[m
+[31m-    "Voltage Value" : 229.33,[m
+[32m+[m[32m    "Voltage Value" : 219.11,[m
+     "Current Value" : 0,[m
+     "Active Power Value" : 0.00,[m
+     "Reactive Power Value" : 0,[m
+[36m@@ -390,6 +392,25 @@[m [mconst currentData = {"SLCILM0001":{"min":0.5,"max":2},"SLCILM0002":{"min":0.5,"m[m
+ function getRandomFloat(min, max) {[m
+   return (Math.random() * (max - min) + min).toFixed(2);[m
+ }[m
+[32m+[m[32mconst MIN_CURRENT = 0.5;  // Minimum safe current in Amperes[m
+[32m+[m[32mconst MAX_CURRENT = 2.0;  // Maximum safe current in Amperes[m
+[32m+[m
+[32m+[m[32m// Function to generate random current, occasionally going below or above thresholds[m
+[32m+[m[32mfunction getRandomCurrent() {[m
+[32m+[m[32m    const randomFactor = Math.random();[m
+[32m+[m[32m    let current;[m
+[32m+[m
+[32m+[m[32m    // 10% chance of going beyond limits (either above or below)[m
+[32m+[m[32m    if (randomFactor < 0.05) {  // 5% chance to be below MIN_CURRENT[m
+[32m+[m[32m        current = MIN_CURRENT - Math.random() * 0.5; // Up to 0.5A below MIN_CURRENT[m
+[32m+[m[32m    } else if (randomFactor > 0.95) {  // 5% chance to be above MAX_CURRENT[m
+[32m+[m[32m        current = MAX_CURRENT + Math.random() * 0.5; // Up to 0.5A above MAX_CURRENT[m
+[32m+[m[32m    } else {  // Normal range 90% of the time[m
+[32m+[m[32m        current = Math.random() * (MAX_CURRENT - MIN_CURRENT) + MIN_CURRENT; // Normal range[m
+[32m+[m[32m    }[m
+[32m+[m
+[32m+[m[32m    return current.toFixed(2); // Return a float with 2 decimal places[m
+[32m+[m[32m}[m
+ [m
+ // Voltage threshold limits[m
+ const MIN_VOLTAGE = 220;  // Minimum safe voltage[m

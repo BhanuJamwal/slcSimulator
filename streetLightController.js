@@ -8,7 +8,7 @@ const topicBase = 'streetlight/controller';
 
 // Define the number of street light controllers (SLC devices)
 const Devices = [{"deviceId":"SLCILM0001","username":"3UUBsUUZa7DgVbheMX8jrDAB0","password":"Dyfs5rI3gMYWyDt76SKKmqOqLqOD","number":"1"},{"deviceId":"SLCILM0002","username":"3UUBsUUZa7DgVbheMX8jrDAB0","password":"Dyfs5rI3gMYWyDt76SKKmqOqLqOD","number":"2"},{"deviceId":"SLCILM0003","username":"3UUBsUUZa7DgVbheMX8jrDAB0","password":"Dyfs5rI3gMYWyDt76SKKmqOqLqOD","number":"3"},{"deviceId":"SLCILM0004","username":"3UUBsUUZa7DgVbheMX8jrDAB0","password":"Dyfs5rI3gMYWyDt76SKKmqOqLqOD","number":"4"},{"deviceId":"SLCILM0005","username":"3UUBsUUZa7DgVbheMX8jrDAB0","password":"Dyfs5rI3gMYWyDt76SKKmqOqLqOD","number":"5"}];
-//const Devices = [{"deviceId":"SLCILM0001","username":"3UUBsUUZa7DgVbheMX8jrDAB0","password":"Dyfs5rI3gMYWyDt76SKKmqOqLqOD"}];
+//const Devices = [{"deviceId":"SLCILM0003","username":"3UUBsUUZa7DgVbheMX8jrDAB0","password":"Dyfs5rI3gMYWyDt76SKKmqOqLqOD"}];
 
 // Array to store each SLC device
 const slcDevices = [];
@@ -60,7 +60,8 @@ function initializeDevice(device) {
 function sendStatusUpdate(device, topic) {
   data[device.id]["Voltage Value"] = parseFloat(getRandomVoltage())
   if(data[device.id]["Load On Off Status"]){
-    data[device.id]["Current Value"] = parseFloat(getRandomFloat(currentData[device.id]["min"],currentData[device.id]["max"]))
+    //data[device.id]["Current Value"] = parseFloat(getRandomFloat(currentData[device.id]["min"],currentData[device.id]["max"]))
+    data[device.id]["Current Value"] = parseFloat(getRandomCurrent())
     data[device.id]["Power Factor Value"] = parseFloat(getRandomPowerFactor())
     data[device.id]["Active Power Value"] = parseFloat(calculateRealPower(data[device.id]["Voltage Value"],data[device.id]["Current Value"],data[device.id]["Power Factor Value"]))
     data[device.id]["Apparent Power Value"] = parseFloat(calculateApparentPower(data[device.id]["Voltage Value"], data[device.id]["Current Value"]))
@@ -92,7 +93,8 @@ function handleCommand(device, payload, topic) {
       data[device.id]["Load On Off Status"] = true
       //device.status = 'ON';
       data[device.id]["Dimming Value"] = value || 100;
-      data[device.id]["Current Value"] = parseFloat(getRandomFloat(currentData[device.id]["min"],currentData[device.id]["max"]))
+      //data[device.id]["Current Value"] = parseFloat(getRandomFloat(currentData[device.id]["min"],currentData[device.id]["max"]))
+      data[device.id]["Current Value"] = parseFloat(getRandomCurrent())
       data[device.id]["Power Factor Value"] = parseFloat(getRandomPowerFactor())
       data[device.id]["Active Power Value"] = parseFloat(calculateRealPower(data[device.id]["Voltage Value"],data[device.id]["Current Value"],data[device.id]["Power Factor Value"]))
       data[device.id]["Apparent Power Value"] = parseFloat(calculateApparentPower(data[device.id]["Voltage Value"], data[device.id]["Current Value"]))
@@ -275,7 +277,7 @@ const data = {
     // Device SW Reset Counter = 516
     "Metering Energy kWH Counter" : 25.25,
     "Burning Hours" : 1705.65,
-    "Voltage Value" : 229.33,
+    "Voltage Value" : 229.11,
     "Current Value" : 0,
     "Active Power Value" : 0.00,
     "Reactive Power Value" : 0,
@@ -389,6 +391,25 @@ const currentData = {"SLCILM0001":{"min":0.5,"max":2},"SLCILM0002":{"min":0.5,"m
 
 function getRandomFloat(min, max) {
   return (Math.random() * (max - min) + min).toFixed(2);
+}
+const MIN_CURRENT = 0.5;  // Minimum safe current in Amperes
+const MAX_CURRENT = 2.0;  // Maximum safe current in Amperes
+
+// Function to generate random current, occasionally going below or above thresholds
+function getRandomCurrent() {
+    const randomFactor = Math.random();
+    let current;
+
+    // 10% chance of going beyond limits (either above or below)
+    if (randomFactor < 0.05) {  // 5% chance to be below MIN_CURRENT
+        current = MIN_CURRENT - Math.random() * 0.5; // Up to 0.5A below MIN_CURRENT
+    } else if (randomFactor > 0.95) {  // 5% chance to be above MAX_CURRENT
+        current = MAX_CURRENT + Math.random() * 0.5; // Up to 0.5A above MAX_CURRENT
+    } else {  // Normal range 90% of the time
+        current = Math.random() * (MAX_CURRENT - MIN_CURRENT) + MIN_CURRENT; // Normal range
+    }
+
+    return current.toFixed(2); // Return a float with 2 decimal places
 }
 
 // Voltage threshold limits
