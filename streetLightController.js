@@ -433,12 +433,29 @@ function getRandomVoltage() {
     return voltage.toFixed(2); // Return a float with 2 decimal places
 }
 
-function getRandomPowerFactor() {
-  const MIN_POWER_FACTOR = 0.7; // Minimum power factor
-  const MAX_POWER_FACTOR = 1.0; // Maximum power factor (pure resistive load)
-  return (Math.random() * (MAX_POWER_FACTOR - MIN_POWER_FACTOR) + MIN_POWER_FACTOR).toFixed(2);
-}
+// function getRandomPowerFactor() {
+//   const MIN_POWER_FACTOR = 0.7; // Minimum power factor
+//   const MAX_POWER_FACTOR = 1.0; // Maximum power factor (pure resistive load)
+//   return (Math.random() * (MAX_POWER_FACTOR - MIN_POWER_FACTOR) + MIN_POWER_FACTOR).toFixed(2);
+// }
+const MIN_POWER_FACTOR = 0.85;  // Minimum normal power factor
+const MAX_POWER_FACTOR = 1.0;   // Maximum power factor (unity)
+const THRESHOLD = 0.75;         // Threshold for power factor dip
 
+// Function to generate random power factor, occasionally going below threshold
+function getRandomPowerFactor() {
+    const randomFactor = Math.random();
+    let powerFactor;
+
+    // 2% chance of going below the threshold
+    if (randomFactor < 0.02) {  
+        powerFactor = Math.random() * (MIN_POWER_FACTOR - THRESHOLD) + THRESHOLD; // Below normal range
+    } else {
+        powerFactor = Math.random() * (MAX_POWER_FACTOR - MIN_POWER_FACTOR) + MIN_POWER_FACTOR; // Normal range
+    }
+
+    return powerFactor.toFixed(2); // Return a float with 2 decimal places
+}
 // Function to calculate apparent power (S = V * I)
 function calculateApparentPower(voltage, current) {
   return (voltage * current).toFixed(2);
