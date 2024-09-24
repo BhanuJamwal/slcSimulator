@@ -7,7 +7,7 @@ const brokerUrl = 'mqtts://dmp-tata.orbiwise.com:8883';
 const topicBase = 'streetlight/controller';
 
 // Define the number of street light controllers (SLC devices)
-const Devices = [{"deviceId":"SLCILM0001","username":"3UUBsUUZa7DgVbheMX8jrDAB0","password":"Dyfs5rI3gMYWyDt76SKKmqOqLqOD","number":"1"},{"deviceId":"SLCILM0002","username":"3UUBsUUZa7DgVbheMX8jrDAB0","password":"Dyfs5rI3gMYWyDt76SKKmqOqLqOD","number":"2"},{"deviceId":"SLCILM0003","username":"3UUBsUUZa7DgVbheMX8jrDAB0","password":"Dyfs5rI3gMYWyDt76SKKmqOqLqOD","number":"3"},{"deviceId":"SLCILM0004","username":"3UUBsUUZa7DgVbheMX8jrDAB0","password":"Dyfs5rI3gMYWyDt76SKKmqOqLqOD","number":"4"},{"deviceId":"SLCILM0005","username":"3UUBsUUZa7DgVbheMX8jrDAB0","password":"Dyfs5rI3gMYWyDt76SKKmqOqLqOD","number":"5"}];
+const Devices = [{"deviceId":"SLCILM0001","username":"3UUBsUUZa7DgVbheMX8jrDAB0","password":"Dyfs5rI3gMYWyDt76SKKmqOqLqOD"},{"deviceId":"SLCILM0002","username":"3UUBsUUZa7DgVbheMX8jrDAB0","password":"Dyfs5rI3gMYWyDt76SKKmqOqLqOD"},{"deviceId":"SLCILM0003","username":"3UUBsUUZa7DgVbheMX8jrDAB0","password":"Dyfs5rI3gMYWyDt76SKKmqOqLqOD"},{"deviceId":"SLCILM0004","username":"3UUBsUUZa7DgVbheMX8jrDAB0","password":"Dyfs5rI3gMYWyDt76SKKmqOqLqOD"},{"deviceId":"SLCILM0005","username":"3UUBsUUZa7DgVbheMX8jrDAB0","password":"Dyfs5rI3gMYWyDt76SKKmqOqLqOD"}];
 //const Devices = [{"deviceId":"SLCILM0003","username":"3UUBsUUZa7DgVbheMX8jrDAB0","password":"Dyfs5rI3gMYWyDt76SKKmqOqLqOD"}];
 
 // Array to store each SLC device
@@ -37,13 +37,14 @@ function initializeDevice(device) {
         console.log(`Device ${device.deviceId} subscribed to topic: ${controlTopic}`);
       }
     });
-
     // Periodically send status updates every 15 minutes
-    setInterval(() => {
+    const intervalId = setInterval(() => {
       sendStatusUpdate(slcDevice, statusTopic);
-    }, 15 * 60 * 1000); // 15 minutes interval
+    }, data[device.deviceId]["interval"] * 60 * 1000); // 15 minutes interval
+    //data[device.deviceId]["intervalId"] = intervalId
+    intervals[device.deviceId] = intervalId
   });
-
+  client.on('error',(error)=>{console.log(error,"error!")})
   // Handle incoming commands
   client.on('message', (topic, message) => {
     if (topic === controlTopic) {
@@ -110,6 +111,16 @@ function handleCommand(device, payload, topic) {
     case 'DIM':
       data[device.id]["Load On Off Status"] = 'ON';
       data[device.id]["Dimming Value"] = value;
+      break;
+    case 'INTERVAL':
+      data[device.id]["interval"] = value
+      if(intervals[device.id]){
+        clearInterval(intervals[device.id])
+      }
+      const intervalId = setInterval(() => {
+        sendStatusUpdate(device, topic);
+      }, data[device.id]["interval"] * 60 * 1000); // 15 minutes interval
+      intervals[device.id] = intervalId
       break;
     default:
       console.log(`Unknown command received for Device ${device.id}`);
@@ -208,6 +219,7 @@ const data = {
     "Battery Value" : 2,
     "timestamp" : "2024-09-13T12:17:47.735Z",
     //"deveui" : "3cc1f605000601c1"
+    "interval":15
     },
   "SLCILM0002":{
     "Port":10,
@@ -250,6 +262,7 @@ const data = {
     "Battery Percentage" : 2,
     "Battery Value" : 2,
     "timestamp" : "2024-09-13T12:17:47.735Z",
+    "interval":15
     //"deveui" : "3cc1f605000601c1"
     },
   "SLCILM0003": {
@@ -257,8 +270,8 @@ const data = {
     "packetType": "normal",
     "Packet":"Device Status Change Message",
     "AC Mains Status":true,
-    "Load On Off Status" : false,
-    "Dimming Value": 0,
+    "Load On Off Status" : true,
+    "Dimming Value": 100,
     "Lux Sensor Value" : 0,
     "CT Current Value" : 255,
     //"Device Mode" : 2,
@@ -293,6 +306,7 @@ const data = {
     "Battery Percentage" : 2,
     "Battery Value" : 2,
     "timestamp" : "2024-09-13T12:17:47.735Z",
+    "interval": 15
     //"deveui" : "3cc1f605000601c1"
     },
   "SLCILM0004" : {
@@ -336,6 +350,7 @@ const data = {
     "Battery Percentage" : 2,
     "Battery Value" : 2,
     "timestamp" : "2024-09-13T12:17:47.735Z",
+    "interval":15
     //"deveui" : "3cc1f605000601c1"
     },
   "SLCILM0005" :{
@@ -380,13 +395,13 @@ const data = {
     "Battery Value" : 2,
     "timestamp" : "2024-09-13T12:17:47.735Z",
     //"deveui" : "3cc1f605000601c1"
+    "interval":15
     }
 }
 
 
 //const currentData = {"SLCILM0001":{"min":0.5,"max":2},"SLCILM0002":{"min":0.5,"max":2},"SLCILM0003":{"min":2,"max":10},"SLCILM0004":{"min":2,"max":10},"SLCILM0005":{"min":5,"max":20}}
-
-const currentData = {"SLCILM0001":{"min":0.5,"max":2},"SLCILM0002":{"min":0.5,"max":2},"SLCILM0003":{"min":0.5,"max":2},"SLCILM0004":{"min":0.5,"max":2},"SLCILM0005":{"min":0.5,"max":2}}
+//const currentData = {"SLCILM0001":{"min":0.5,"max":2},"SLCILM0002":{"min":0.5,"max":2},"SLCILM0003":{"min":0.5,"max":2},"SLCILM0004":{"min":0.5,"max":2},"SLCILM0005":{"min":0.5,"max":2}}
 
 
 function getRandomFloat(min, max) {
@@ -464,6 +479,11 @@ function calculateApparentPower(voltage, current) {
 // Function to calculate real power (P = V * I * cos(phi))
 function calculateRealPower(voltage, current, powerFactor) {
   return (voltage * current * powerFactor).toFixed(2);
+}
+
+
+const intervals = {
+  "SLCILM0001":null,"SLCILM0002":null,"SLCILM0003":null,"SLCILM0004":null,"SLCILM0005":null
 }
 
 
