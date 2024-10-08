@@ -25,7 +25,7 @@ const getData = () => {
 
     // The whole response has been received.
     response.on('end', () => {
-      console.log(JSON.parse(data)); // Handle the response data
+      console.log(data); // Handle the response data
     });
 
   }).on('error', (error) => {
@@ -71,7 +71,7 @@ function initializeDevice(device) {
     //data[device.deviceId]["intervalId"] = intervalId
     intervals[device.deviceId] = intervalId
   });
-  client.on('error',(error)=>{console.log(error,"error!")})
+  client.on('error',(error)=>{console.log(error,"error!",device)})
   // Handle incoming commands
   client.on('message', (topic, message) => {
     if (topic === controlTopic) {
