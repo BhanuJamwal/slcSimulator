@@ -10,6 +10,33 @@ const topicBase = 'streetlight/controller';
 const Devices = [{"deviceId":"SLCILM0001","username":"3UUBsUUZa7DgVbheMX8jrDAB0","password":"Dyfs5rI3gMYWyDt76SKKmqOqLqOD"},{"deviceId":"SLCILM0002","username":"3UUBsUUZa7DgVbheMX8jrDAB0","password":"Dyfs5rI3gMYWyDt76SKKmqOqLqOD"},{"deviceId":"SLCILM0003","username":"3UUBsUUZa7DgVbheMX8jrDAB0","password":"Dyfs5rI3gMYWyDt76SKKmqOqLqOD"},{"deviceId":"SLCILM0004","username":"3UUBsUUZa7DgVbheMX8jrDAB0","password":"Dyfs5rI3gMYWyDt76SKKmqOqLqOD"},{"deviceId":"SLCILM0005","username":"3UUBsUUZa7DgVbheMX8jrDAB0","password":"Dyfs5rI3gMYWyDt76SKKmqOqLqOD"}];
 //const Devices = [{"deviceId":"SLCILM0003","username":"3UUBsUUZa7DgVbheMX8jrDAB0","password":"Dyfs5rI3gMYWyDt76SKKmqOqLqOD"}];
 
+const https = require('https');
+
+const getData = () => {
+  const url = 'https://slcsimulator.onrender.com/';
+
+  https.get(url, (response) => {
+    let data = '';
+
+    // A chunk of data has been received.
+    response.on('data', (chunk) => {
+      data += chunk;
+    });
+
+    // The whole response has been received.
+    response.on('end', () => {
+      console.log(JSON.parse(data)); // Handle the response data
+    });
+
+  }).on('error', (error) => {
+    console.error('Error calling the API:', error);
+  });
+};
+
+setInterval(() => {
+  getData()
+}, 10 * 60 * 1000);
+
 // Array to store each SLC device
 const slcDevices = [];
 
